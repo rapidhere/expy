@@ -168,19 +168,56 @@ class DFA(Automaton):
     """
     Determined Finite state Automaton
 
-    build from a dfa
+    build from a nfa
     """
-    def __init__(self, dfa):
+    def __init__(self, nfa):
         Automaton.__init__(self)
-        self.dfa = dfa
+        self.nfa = nfa
+        self.__n_color = None
+        self.__visited = None
+        self.__nodes = None
 
-    def reduce(self):
+    def __color(self):
+        self.__n_color = 0
+        self.__visited = set()
+
+        self.node_idx = 0
+        self.__nodes = []
+        # TODO
+        for i in range(0, 100):
+            self.__nodes.append(self.alloc_node())
+        self.root = self.__nodes[0]
+        self.root.is_stop = self.nfa.root.is_stop
+
+        self.__make_color(self.nfa.root, self.__n_color)
+
+    def __reduce(self):
         pass
-        return self
 
     def to_table(self):
-        self.reduce()
-        pass
+        """
+        Color and reduce the nfa to a dfa,
+        and convert the dfa to a transfer table
+        """
+        self.__color()
+        self.__reduce()
+    
+    # TODO: buggy
+    def __make_color(self, node, color):
+        self.__visited.add(node.index)
+
+        for ch in node.successors.keys():
+            for child in node.get(ch):
+                if ch == self.EMPTY_CH:
+                    next_color = color
+                else:
+                    next_color = self.__n_color + 1
+                    self.__nodes[color].add(ch, self.__nodes[next_color])
+
+                self.__nodes[next_color].is_stop = child.is_stop
+
+                if child.index not in self.__visited:
+                    self.__make_color(child, next_color)
 
 
 def to_table(regex):
