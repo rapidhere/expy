@@ -9,4 +9,4 @@ EXPY - A Expression Executor for Python
 
 LICENSE
 ---
-LGPG-v3.0
+LGPL-v3.0

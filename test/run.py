@@ -10,7 +10,7 @@ sys.path.append(os.path.realpath(os.path.join(BASE_DIR, "..")))
 
 import unittest
 
-from ast.test_automation import TestNFA
+from ast.test_automaton import TestNFA
 
 
 def load():
