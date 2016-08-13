@@ -4,4 +4,4 @@ Ast testcases
 
 Author: rapidhere@gmail.com
 """
-__author__ = "rapidhere"
+__author__ = "rapidhere@gmail.com"

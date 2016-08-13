@@ -4,7 +4,7 @@ Test runner
 
 Author: rapidhere@gmail.com
 """
-__author__ = "rapidhere"
+__author__ = "rapidhere@gmail.com"
 
 import os
 import sys
@@ -19,12 +19,14 @@ from ast.test_automaton import TestNFA, TestDFA
 
 def load():
     return (
-        TestNFA.load_cases())
+        TestNFA.load_cases(),
+        TestDFA.load_cases())
 
 
 def run():
     ts = unittest.TestSuite()
-    ts.addTests(load())
+    for suite in load():
+        ts.addTests(suite)
 
     tr = unittest.TextTestRunner()
     ret = tr.run(ts)

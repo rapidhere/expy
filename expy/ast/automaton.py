@@ -4,7 +4,7 @@ Automaton for build regular languages into tables
 
 Author: rapidhere@gmail.com
 """
-__author__ = "rapidhere"
+__author__ = "rapidhere@gmail.com"
 __all__ = ["to_table"]
 
 
@@ -32,9 +32,27 @@ class AutomatonNode(object):
 
     def get(self, ch):
         """
-        get a successor by char
+        get successors by char
         """
         return self.successors[ch]
+
+    def get_one(self, ch):
+        """
+        get on successor by char
+        """
+        if ch in self.successors:
+            return self.successors[ch][0]
+        else:
+            return None
+
+    def __hash__(self):
+        return self.index
+
+    def __str__(self):
+        return "Node@ " + str(self.index)
+
+    def __repr__(self):
+        return self.__str__()
 
 
 class Automaton(object):
@@ -172,26 +190,6 @@ class DFA(Automaton):
     def __init__(self, nfa):
         Automaton.__init__(self)
         self.nfa = nfa
-        self.__n_color = None
-        self.__visited = None
-        self.__nodes = None
-
-    def __color(self):
-        self.__n_color = 0
-        self.__visited = set()
-
-        self.node_idx = 0
-        self.__nodes = []
-        # TODO
-        for i in range(0, 100):
-            self.__nodes.append(self.alloc_node())
-        self.root = self.__nodes[0]
-        self.root.is_stop = self.nfa.root.is_stop
-
-        self.__make_color(self.nfa.root, self.__n_color)
-
-    def __reduce(self):
-        pass
 
     def to_table(self):
         """
@@ -200,23 +198,94 @@ class DFA(Automaton):
         """
         self.__color()
         self.__reduce()
-    
-    # TODO: buggy
-    def __make_color(self, node, color):
-        self.__visited.add(node.index)
 
-        for ch in node.successors.keys():
-            for child in node.get(ch):
-                if ch == self.EMPTY_CH:
-                    next_color = color
-                else:
-                    next_color = self.__n_color + 1
-                    self.__nodes[color].add(ch, self.__nodes[next_color])
+    def __color(self):
+        # calc empty closure
+        self.__get_all_empty_closure(self.nfa.root)
 
-                self.__nodes[next_color].is_stop = child.is_stop
+        state_map = {}
+        changed_states = []
 
-                if child.index not in self.__visited:
-                    self.__make_color(child, next_color)
+        root_closure = self.nfa.root.empty_closure
+        root_hash = self.__hash_state(root_closure)
+        changed_states.append(root_hash)
+        state_map[root_hash] = {
+            self.EMPTY_CH: root_closure,
+            "index": 0}
+        self.node_idx = 0
+
+        # calc closures
+        while changed_states:
+            state_hash = changed_states.pop(-1)
+            cur_map = state_map[state_hash]
+            state = cur_map[self.EMPTY_CH]
+
+            for s in state:
+                for ch in s.successors.keys():
+                    if ch not in cur_map:
+                        cur_closure = self.__calc_closure(ch, state)
+                        cur_hash = self.__hash_state(cur_closure)
+                        cur_map[ch] = (cur_hash, cur_closure)
+
+                        if cur_hash not in state_map:
+                            self.node_idx += 1
+                            state_map[cur_hash] = {
+                                self.EMPTY_CH: cur_closure,
+                                "index": self.node_idx}
+                            changed_states.append(cur_hash)
+
+        nodes = [AutomatonNode(x) for x in range(self.node_idx + 1)]
+        # build DFA
+        for state in state_map.values():
+            u = nodes[state["index"]]
+
+            for v in state[self.EMPTY_CH]:
+                if v.is_stop:
+                    u.is_stop = True
+                    break
+
+            for ch, s in state.items():
+                if ch == "index" or ch == self.EMPTY_CH:
+                    continue
+
+                if ch not in u.successors:
+                    u.add(ch, nodes[state_map[s[0]]["index"]])
+        # set root, clear
+        self.root = nodes[0]
+
+    def __reduce(self):
+        pass
+
+    def __hash_state(self, state):
+        return hash("`".join([str(x.index) for x in state]))
+
+    def __calc_closure(self, ch, empty_closure):
+        ret = set()
+        for u in empty_closure:
+            if ch in u.successors:
+                for child in u.get(ch):
+                    ret = ret.union(child.empty_closure)
+        return ret
+
+    def __get_all_empty_closure(self, node):
+        if hasattr(node, "empty_closure"):
+            return
+
+        node.empty_closure = set()
+        self.__get_empty_closure(node, node.empty_closure)
+
+        for succ in node.successors.values():
+            for u in succ:
+                self.__get_all_empty_closure(u)
+
+    def __get_empty_closure(self, node, closure):
+        if node in closure:
+            return
+        closure.add(node)
+
+        if self.EMPTY_CH in node.successors:
+            for child in node.get(self.EMPTY_CH):
+                self.__get_empty_closure(child, closure)
 
 
 def to_table(regex):
