@@ -199,6 +199,26 @@ class DFA(Automaton):
         self.__color()
         self.__reduce()
 
+        table = {}
+        self.__get_table(self.root, table)
+
+        return table
+
+    def __get_table(self, node, table):
+        if hasattr(node, "tabled"):
+            return
+
+        node.tabled = True
+        table[node.index] = {
+            "is_stop": node.is_stop}
+
+        for ch in node.successors:
+            child = node.get_one(ch)
+
+            table[node.index][ch] = child.index
+
+            self.__get_table(child, table)
+
     def __color(self):
         # calc empty closure
         self.__get_all_empty_closure(self.nfa.root)

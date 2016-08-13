@@ -1,14 +1,25 @@
-- test_method: test_color
+- test_method:
+    - test_color
+    - test_table
   input:
-   - [0, '`', 1, 0]
-   - [1, 'b', 2, 0]
-   - [2, '`', 1, 0]
-   - [2, '`', 3, 1]
+    - [0, '`', 1, 0]
+    - [1, 'b', 2, 0]
+    - [2, '`', 1, 0]
+    - [2, '`', 3, 1]
   colored_dfa:
-   - [0, 'b', 1, 1]
-   - [1, 'b', 1, 1]
+    - [0, 'b', 1, 1]
+    - [1, 'b', 1, 1]
+  table:
+    0:
+      'is_stop': false
+      'b': 1
+    1:
+      'is_stop': true
+      'b': 1
 
-- test_method: test_color
+- test_method:
+    - test_color
+    - test_table
   input:
     - [0, 'b', 1, 0]
     - [0, '`', 3, 0]
@@ -17,8 +28,19 @@
   colored_dfa:
     - [0, 'b', 1, 1]
     - [1, 'a', 2, 1]
+  table:
+    0:
+      'is_stop': false
+      'b': 1
+    1:
+      'is_stop': true
+      'a': 2
+    2:
+      'is_stop': true
 
-- test_method: test_color
+- test_method:
+    - test_color
+    - test_table
   input:
     - [0, '1', 1, 0]
     - [0, '`', 3, 0]
@@ -27,8 +49,19 @@
   colored_dfa:
     - [0, '1', 1, 1]
     - [1, '2', 2, 1]
+  table:
+    0:
+      'is_stop': false
+      '1': 1
+    1:
+      'is_stop': true
+      '2': 2
+    2:
+      'is_stop': true
 
-- test_method: test_color
+- test_method:
+    - test_color
+    - test_table
   input:
     - [0, '`', 1, 0]
     - [1, 'a', 2, 0]
@@ -48,9 +81,32 @@
     - [3, 'b', 2, 0]
     - [3, 'a', 1, 0]
     - [3, 'c', 3, 1]
+  table:
+    0:
+      'is_stop': false
+      'a': 1
+    1:
+      'is_stop': false
+      'a': 1
+      'b': 2
+    2:
+      'is_stop': false
+      'b': 2
+      'a': 1
+      'c': 3
+    3:
+      'is_stop': true
+      'b': 2
+      'a': 1
+      'c': 3
 
-- test_method: test_color
+- test_method:
+    - test_color
+    - test_table
   input:
     - [0, '`', 1, 1]
     - [1, '`', 0, 0]
   colored_dfa: []
+  table:
+    0:
+      'is_stop': true

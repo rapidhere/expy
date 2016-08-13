@@ -35,17 +35,23 @@ class TestNFA(unittest.TestCase):
 
 
 class TestDFA(unittest.TestCase):
-    def __init__(self, test_method, input, colored_dfa=None):
+    def __init__(self, test_method, input, colored_dfa=None, table=None):
         unittest.TestCase.__init__(self, test_method)
 
         self.input = input
         self.colored_dfa = colored_dfa
+        self.table = table
 
     def test_color(self):
         nfa = self.load_nfa()
         dfa = DFA(nfa)
         dfa._DFA__color()
         self.assertListEqual(sorted(dfa.dump()), sorted(self.colored_dfa))
+
+    def test_table(self):
+        nfa = self.load_nfa()
+        table = DFA(nfa).to_table()
+        self.assertDictEqual(self.table, table)
 
     def load_nfa(self):
         nfa = NFA('')
@@ -66,12 +72,20 @@ class TestDFA(unittest.TestCase):
 
     @classmethod
     def load_cases(cls):
-        cases = load_yaml("dfa_cases.yaml")
-        for case in cases:
+        cases = []
+
+        for case in load_yaml("dfa_cases.yaml"):
             replace_tuple(case["input"])
             replace_tuple(case["colored_dfa"])
 
-        return [cls(**case) for case in cases]
+            for test_method in case["test_method"]:
+                cases.append(cls(
+                    test_method,
+                    case.get("input"),
+                    case.get("colored_dfa"),
+                    case.get("table")))
+
+        return cases
 
 
 def load_yaml(file_name):
