@@ -52,9 +52,9 @@ class TestDFA(unittest.TestCase):
 
     @classmethod
     def load_cases(cls):
-        return [cls(*case) for case in cls.CASES]
+        pass
 
 
 def load_yaml(file_name):
-    with file(os.path.join(__file__, "..", file_name)) as f:
+    with file(os.path.join(os.path.dirname(__file__), file_name)) as f:
         return [x for x in yaml.load_all(f.read())][0]
