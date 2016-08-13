@@ -274,6 +274,7 @@ class DFA(Automaton):
         self.root = nodes[0]
 
     def __reduce(self):
+        # TODO
         pass
 
     def __hash_state(self, state):

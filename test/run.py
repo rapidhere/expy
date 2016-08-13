@@ -15,12 +15,14 @@ sys.path.append(os.path.realpath(os.path.join(BASE_DIR, "..")))
 import unittest
 
 from ast.test_automaton import TestNFA, TestDFA
+from ast.test_lexer import TestLexer
 
 
 def load():
     return (
         TestNFA.load_cases(),
-        TestDFA.load_cases())
+        TestDFA.load_cases(),
+        TestLexer.load_cases())
 
 
 def run():
