@@ -4,7 +4,6 @@ Automaton for build regular languages into tables
 
 Author: rapidhere@gmail.com
 """
-
 __author__ = "rapidhere"
 __all__ = ["to_table"]
 

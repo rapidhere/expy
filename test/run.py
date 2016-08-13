@@ -1,5 +1,9 @@
 #-*- coding: utf-8 -*-
+"""
+Test runner
 
+Author: rapidhere@gmail.com
+"""
 __author__ = "rapidhere"
 
 import os
@@ -10,7 +14,7 @@ sys.path.append(os.path.realpath(os.path.join(BASE_DIR, "..")))
 
 import unittest
 
-from ast.test_automaton import TestNFA
+from ast.test_automaton import TestNFA, TestDFA
 
 
 def load():
