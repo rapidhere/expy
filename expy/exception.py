@@ -13,7 +13,13 @@ class ExpyException(Exception):
     """
 
 
-class ExpySyntaxError(Exception):
+class ExpyCompilingError(ExpyException):
+    """
+    Generic compiling errors
+    """
+
+
+class ExpySyntaxError(ExpyCompilingError):
     """
     Generic syntax errors
     """
@@ -43,3 +49,39 @@ class UnexpectedToken(ExpySyntaxError):
         ExpySyntaxError.__init__(
             self, "unexpected token %s `%s` at %d" %
             (token.__class__.__name__, str(token.value), token.start_pos))
+
+
+class UnsupportedExpression(ExpyCompilingError):
+    """
+    this class of expression is not supported
+    """
+    def __init__(self, exp):
+        ExpyCompilingError.__init__(
+            self, "%s is not supported yet" % exp.__class__.__name__)
+
+
+class UnsupportedOperator(ExpyCompilingError):
+    """
+    cannot compile this operator
+    """
+    def __init__(self, op):
+        ExpyCompilingError.__init__(
+            self, "operator %s is not supported yet" % op.value)
+
+
+class UnsupportedValueType(ExpySyntaxError):
+    """
+    this type of value is not supported
+    """
+    def __init__(self, token):
+        ExpyCompilingError.__init__(
+            self, "value `%s` of type %s is not supported yet" % (token.value, token.__class__.__name__))
+
+
+class TooManyConstants(ExpySyntaxError):
+    """
+    number of constants exceeded 65536
+    """
+    def __init__(self):
+        ExpyCompilingError.__init__(
+            self, "too many constants in the expression!")

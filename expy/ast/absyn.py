@@ -14,6 +14,9 @@ class BaseAbstractSyntax(object):
     def __init__(self):
         pass
 
+    def __eq__(self, another):
+        return isinstance(another, self.__class__) or issubclass(another, self.__class__)
+
     @property
     def position(self):
         """
