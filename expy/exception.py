@@ -33,3 +33,13 @@ class UnexpectedEOF(ExpySyntaxError):
     """
     def __init__(self):
         ExpySyntaxError.__init__(self, "unexpected end of file")
+
+
+class UnexpectedToken(ExpySyntaxError):
+    """
+    Unexpected Token
+    """
+    def __init__(self, token):
+        ExpySyntaxError.__init__(
+            self, "unexpected token %s `%s` at %d" %
+            (token.__class__.__name__, str(token.value), token.start_pos))

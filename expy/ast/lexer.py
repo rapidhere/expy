@@ -53,3 +53,9 @@ class Lexer(object):
             self.__accepted.append(self.__accept_next())
 
         return self.__accepted[-1]
+
+    def has_next(self):
+        """
+        determine wether the tokens is all accepted
+        """
+        return self.peek() is not None

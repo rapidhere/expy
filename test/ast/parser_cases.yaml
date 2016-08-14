@@ -1,0 +1,106 @@
+- expression: '21.2345'
+  ast:
+    class: PrimaryExpression
+    token: 21.2345
+
+- expression: '1 + 2'
+  ast:
+    class: BinaryExpression
+    operator: +
+    left:
+      class: PrimaryExpression
+      token: 1
+    right:
+      class: PrimaryExpression
+      token: 2
+
+- expression: '1 + 2 + 3.45'
+  ast:
+    class: BinaryExpression
+    operator: +
+    left:
+      class: BinaryExpression
+      operator: +
+      left:
+        class: PrimaryExpression
+        token: 1
+      right:
+        class: PrimaryExpression
+        token: 2
+    right:
+      class: PrimaryExpression
+      token: 3.45
+
+- expression: ' - 1 '
+  ast:
+    class: UnaryExpression
+    operator: '-'
+    expression:
+      class: PrimaryExpression
+      token: 1
+
+- expression: '1 + -2 - -3.456'
+  ast:
+    class: BinaryExpression
+    operator: '-'
+    left:
+      class: BinaryExpression
+      operator: +
+      left:
+        class: PrimaryExpression
+        token: 1
+      right:
+        class: UnaryExpression
+        operator: '-'
+        expression:
+          class: PrimaryExpression
+          token: 2
+    right:
+      class: UnaryExpression
+      operator: '-'
+      expression:
+        class: PrimaryExpression
+        token: 3.456
+
+- expression: '1 + 2 * 3 - 4'
+  ast:
+    class: BinaryExpression
+    operator: '-'
+    left:
+      class: BinaryExpression
+      operator: +
+      left:
+        class: PrimaryExpression
+        token: 1
+      right:
+        class: BinaryExpression
+        operator: '*'
+        left:
+          class: PrimaryExpression
+          token: 2
+        right:
+          class: PrimaryExpression
+          token: 3
+    right:
+      class: PrimaryExpression
+      token: 4
+
+- expression: '- - + - + 1'
+  ast:
+    class: UnaryExpression
+    operator: '-'
+    expression:
+     class: UnaryExpression
+     operator: '-'
+     expression:
+       class: UnaryExpression
+       operator: '+'
+       expression:
+         class: UnaryExpression
+         operator: '-'
+         expression:
+           class: UnaryExpression
+           operator: '+'
+           expression:
+             class: PrimaryExpression
+             token: 1

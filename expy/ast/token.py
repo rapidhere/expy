@@ -30,6 +30,9 @@ class Token(object):
     def __repr__(self):
         return self.__str__()
 
+    def __eq__(self, another_token):
+        return isinstance(another_token, self.__class__) or issubclass(another_token, self.__class__)
+
     @classmethod
     def _get_table(cls):
         if cls._table is None:
@@ -90,6 +93,7 @@ class Plus(Token):
     Plus token
     """
     regex = "( )+( )"
+    binop_priority = 0
 
 
 class Minus(Token):
@@ -97,6 +101,7 @@ class Minus(Token):
     Minus token
     """
     regex = "( )-( )"
+    binop_priority = 0
 
 
 class Multiple(Token):
@@ -104,6 +109,7 @@ class Multiple(Token):
     Multiple token
     """
     regex = "( )*( )"
+    binop_priority = 1
 
 
 class Divide(Token):
@@ -111,6 +117,7 @@ class Divide(Token):
     Divide token
     """
     regex = "( )/( )"
+    binop_priority = 1
 
 
 tokens = (
