@@ -17,6 +17,7 @@ import unittest
 from ast.test_automaton import TestNFA, TestDFA
 from ast.test_lexer import TestLexer
 from ast.test_parser import TestParser
+from compile.test_compiler import TestCompiler
 
 
 def load():
@@ -24,7 +25,8 @@ def load():
         TestNFA.load_cases(),
         TestDFA.load_cases(),
         TestLexer.load_cases(),
-        TestParser.load_cases())
+        TestParser.load_cases(),
+        TestCompiler.load_cases())
 
 
 def run():

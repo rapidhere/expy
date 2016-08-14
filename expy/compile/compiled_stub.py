@@ -11,6 +11,7 @@ from opcode import opmap
 import dis
 
 from expy.exception import TooManyConstants
+from expy import const
 
 
 def invoke(f):
@@ -45,31 +46,26 @@ class CompiledStub(object):
     def __hash__(self):
         return self.__hash
 
-    def pack(self, filename, stacksize=32, pack_print=False):
+    def pack(self, filename, stacksize=32):
         """
         Pack a compiled code object for execute
 
         :pack_print: pack print info instructions in code object
         """
-        # add additional info on needed
-        if pack_print:
-            self.invoke_print_item()
-            self.invoke_print_newline()
-
-        # pack return statments
-        # return None
+        # pack return instruction
+        self.invoke_store_global(0)
         self.invoke_load_const(None)
         self.invoke_return_value()
 
         # pack code object
         self._code = self._gen_code(
             0,                                  # argcount
-            0,                                  # nlocals
+            1,                                  # nlocals
             stacksize,                          # statcksize
             64,                                 # TODO: flag
             ''.join(self._bytecodes),           # codes
             tuple(self._consts),                # consts
-            (),                                 # names
+            (const.Stub.RET_VARNAME,),          # names
             (),                                 # varnames
             filename,                           # filename
             "<expy stub @ %s>" % self.__hash,   # name of module
@@ -89,7 +85,10 @@ class CompiledStub(object):
         if self._code is None:
             raise RuntimeError("Please pack the code object first")
 
-        exec self._code
+        ctx = {}
+        exec self._code in ctx
+
+        return ctx[const.Stub.RET_VARNAME]
 
     def add_const(self, const):
         """
@@ -177,6 +176,18 @@ class CompiledStub(object):
     @invoke
     def invoke_unary_positive(self):
         return struct.pack("B", opmap["UNARY_POSITIVE"])
+
+    @invoke
+    def invoke_store_fast(self, var_index):
+        return (
+            struct.pack("B", opmap["STORE_FAST"]),
+            struct.pack("H", var_index))
+
+    @invoke
+    def invoke_store_global(self, var_index):
+        return (
+            struct.pack("B", opmap["STORE_GLOBAL"]),
+            struct.pack("H", var_index))
 
     # ~ other helpers
     def _gen_code(self, *args):

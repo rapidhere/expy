@@ -1,0 +1,17 @@
+- expression: 1 + 1
+  result: 2
+
+- expression: 1.23 * 4
+  result: 4.92
+
+- expression: 1 / 2
+  result: 0
+
+- expression: 1.0 / 2
+  result: 0.5
+
+- expression: 1 / 2.0
+  result: 0.5
+
+- expression: 1 * -++-+-5
+  result: -5

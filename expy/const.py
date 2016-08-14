@@ -12,3 +12,4 @@ class Stub(object):
     Compiled stub configs
     """
     STUB_FILENAME = "<expy>"
+    RET_VARNAME = "__ret__"

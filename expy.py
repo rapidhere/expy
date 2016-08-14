@@ -39,9 +39,7 @@ def run():
     compiler = Compiler()
 
     try:
-        stub = compiler.compile(
-            args.expression,
-            pack_print=not args.disable_print)
+        stub = compiler.compile(args.expression)
     except ExpyCompilingError as e:
         print "compiling failed: "
         print "    " + str(e)
@@ -53,7 +51,10 @@ def run():
         print
 
     print "execute `%s`\n" % args.expression
-    stub.execute()
+    result = stub.execute()
+
+    if not args.disable_print:
+        print "  > " + str(result)
 
 
 if __name__ == "__main__":
