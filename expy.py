@@ -48,7 +48,7 @@ def run():
         exit(1)
 
     if args.print_dis:
-        print "byte codeDisassamble Info: "
+        print "byte code disassamble Info: "
         dis.dis(stub.code)
         print
 
