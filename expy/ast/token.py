@@ -131,10 +131,19 @@ class Divide(Token):
     binop_priority = 1
 
 
+class Mod(Token):
+    """
+    Mod token
+    """
+    regex = "( )%( )"
+    binop_priority = 1
+
+
 tokens = (
     Plus,
     Minus,
     Multiple,
     Divide,
+    Mod,
     Number,
     Id)

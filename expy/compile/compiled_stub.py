@@ -177,6 +177,10 @@ class CompiledStub(object):
         return struct.pack("B", opmap["BINARY_DIVIDE"])
 
     @invoke
+    def invoke_binary_modulo(self):
+        return struct.pack("B", opmap["BINARY_MODULO"])
+
+    @invoke
     def invoke_print_item(self):
         return struct.pack("B", opmap["PRINT_ITEM"])
 

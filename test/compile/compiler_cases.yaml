@@ -21,3 +21,9 @@
     a: 10
     b: 2
   result: 12
+
+- expression: a % b + 2
+  variables:
+    a: 5
+    b: 2
+  result: 3

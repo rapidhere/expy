@@ -12,6 +12,7 @@ BINARY_EXPRESSION =
   | BINARY_EXPRESSION - BINARY_EXPRESSION
   | BINARY_EXPRESSION * BINARY_EXPRESSION (mind priority)
   | BINARY_EXPRESSION / BINARY_EXPRESSION (mind priority)
+  | BINARY_EXPRESSION % BINARY_EXPRESSION (mind priority)
   | UNARY_EXPRESSION
 
 UNARY_EXPRESSION =
@@ -28,7 +29,7 @@ Author: rapidhere@gmail.com
 __author__ = "rapidhere@gmail.com"
 
 from lexer import Lexer
-from token import Number, Plus, Minus, Multiple, Divide, Id
+from token import Number, Plus, Minus, Multiple, Divide, Mod, Id
 from absyn import PrimaryExpression, BinaryExpression, UnaryExpression
 
 from expy.exception import UnexpectedToken, UnexpectedEOF
@@ -109,7 +110,7 @@ class Parser(object):
         if token is None:
             raise UnexpectedEOF()
 
-        if token not in (Plus, Minus, Multiple, Divide):
+        if token not in (Plus, Minus, Multiple, Divide, Mod):
             raise UnexpectedToken(token)
 
         return token
