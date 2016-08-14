@@ -10,7 +10,7 @@ from compiled_stub import CompiledStub
 
 from expy.ast import Parser
 from expy.ast.absyn import BinaryExpression, UnaryExpression, PrimaryExpression
-from expy.ast.token import Number, Minus, Plus
+from expy.ast.token import Number, Minus, Plus, Divide, Multiple
 from expy.exception import UnsupportedExpression, UnsupportedOperator, UnsupportedValueType
 from expy import const
 
@@ -74,11 +74,23 @@ class Compiler(object):
             stub.invoke_binary_add()
         elif op == Minus:
             stub.invoke_binary_subtract()
+        elif op == Divide:
+            stub.invoke_binary_divide()
+        elif op == Multiple:
+            stub.invoke_binary_multiple()
         else:
             raise UnsupportedOperator(op)
 
     def _compile_unary_expression(self, ast, stub):
-        raise UnsupportedExpression(ast)
+        op = ast.operator
+        self._compile_expression(ast.expression, stub)
+
+        if op == Plus:
+            stub.invoke_unary_positive()
+        elif op == Minus:
+            stub.invoke_unary_negative()
+        else:
+            raise UnsupportedOperator(op)
 
     def _compile_primary_expression(self, ast, stub):
         token = ast.token

@@ -63,20 +63,20 @@ class CompiledStub(object):
 
         # pack code object
         self._code = self._gen_code(
-            0,                              # argcount
-            0,                              # nlocals
-            stacksize,                      # statcksize
-            64,                             # TODO: flag
-            ''.join(self._bytecodes),       # codes
-            tuple(self._consts),            # consts
-            (),                             # names
-            (),                             # varnames
-            filename,                       # filename
-            "<module>",                     # name of module
-            1,                              # lineno
-            '',                             # lnotab
-            (),                             # freevars, for closures
-            ())                             # cellvars
+            0,                                  # argcount
+            0,                                  # nlocals
+            stacksize,                          # statcksize
+            64,                                 # TODO: flag
+            ''.join(self._bytecodes),           # codes
+            tuple(self._consts),                # consts
+            (),                                 # names
+            (),                                 # varnames
+            filename,                           # filename
+            "<expy stub @ %s>" % self.__hash,   # name of module
+            1,                                  # lineno
+            '',                                 # lnotab
+            (),                                 # freevars, for closures
+            ())                                 # cellvars
 
         # clear
         self._consts = None
@@ -151,6 +151,14 @@ class CompiledStub(object):
         return struct.pack("B", opmap["BINARY_SUBTRACT"])
 
     @invoke
+    def invoke_binary_multiple(self):
+        return struct.pack("B", opmap["BINARY_MULTIPLY"])
+
+    @invoke
+    def invoke_binary_divide(self):
+        return struct.pack("B", opmap["BINARY_DIVIDE"])
+
+    @invoke
     def invoke_print_item(self):
         return struct.pack("B", opmap["PRINT_ITEM"])
 
@@ -161,6 +169,14 @@ class CompiledStub(object):
     @invoke
     def invoke_return_value(self):
         return struct.pack("B", opmap["RETURN_VALUE"])
+
+    @invoke
+    def invoke_unary_negative(self):
+        return struct.pack("B", opmap["UNARY_NEGATIVE"])
+
+    @invoke
+    def invoke_unary_positive(self):
+        return struct.pack("B", opmap["UNARY_POSITIVE"])
 
     # ~ other helpers
     def _gen_code(self, *args):
