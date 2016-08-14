@@ -10,7 +10,7 @@ from compiled_stub import CompiledStub
 
 from expy.ast import Parser
 from expy.ast.absyn import BinaryExpression, UnaryExpression, PrimaryExpression
-from expy.ast.token import Number, Minus, Plus, Divide, Multiple
+from expy.ast.token import Number, Minus, Plus, Divide, Multiple, Id
 from expy.exception import UnsupportedExpression, UnsupportedOperator, UnsupportedValueType
 from expy import const
 
@@ -96,5 +96,7 @@ class Compiler(object):
         token = ast.token
         if token == Number:
             stub.invoke_load_const(token.value)
+        elif token == Id:
+            stub.invoke_load_global(token.value)
         else:
             raise UnsupportedValueType(token)

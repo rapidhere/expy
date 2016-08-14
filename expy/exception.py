@@ -78,10 +78,19 @@ class UnsupportedValueType(ExpySyntaxError):
             self, "value `%s` of type %s is not supported yet" % (token.value, token.__class__.__name__))
 
 
-class TooManyConstants(ExpySyntaxError):
+class TooManyConstants(ExpyCompilingError):
     """
     number of constants exceeded 65536
     """
     def __init__(self):
         ExpyCompilingError.__init__(
             self, "too many constants in the expression!")
+
+
+class TooManyVariables(ExpyCompilingError):
+    """
+    number of variables exceeded 65536
+    """
+    def __init__(self):
+        EnvironmentError.__init__(
+            self, "too many variables in the expression!")

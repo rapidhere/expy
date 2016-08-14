@@ -10,7 +10,7 @@ import struct
 from opcode import opmap
 import dis
 
-from expy.exception import TooManyConstants
+from expy.exception import TooManyConstants, TooManyVariables
 from expy import const
 
 
@@ -37,8 +37,9 @@ class CompiledStub(object):
         self.__hash = hash(expression)
 
         # None is always the first const
-        self._constants_map = {}
         self._consts = [None]
+        self._vars = [const.Stub.RET_VARNAME]
+
         self._bytecodes = []
 
         self._code = None
@@ -53,7 +54,7 @@ class CompiledStub(object):
         :pack_print: pack print info instructions in code object
         """
         # pack return instruction
-        self.invoke_store_global(0)
+        self.invoke_store_global(const.Stub.RET_VARNAME)
         self.invoke_load_const(None)
         self.invoke_return_value()
 
@@ -65,7 +66,7 @@ class CompiledStub(object):
             0,                                  # TODO: flag
             ''.join(self._bytecodes),           # codes
             tuple(self._consts),                # consts
-            (const.Stub.RET_VARNAME,),          # names
+            tuple(self._vars),                  # names
             (),                                 # varnames
             filename,                           # filename
             "<expy stub @ %s>" % self.__hash,   # name of module
@@ -77,15 +78,15 @@ class CompiledStub(object):
         # clear
         self._consts = None
         self._bytecodes = None
+        self._vars = None
 
-    def execute(self):
+    def execute(self, **ctx):
         """
         Execute the stub
         """
         if self._code is None:
             raise RuntimeError("Please pack the code object first")
 
-        ctx = {}
         exec self._code in ctx
 
         return ctx[const.Stub.RET_VARNAME]
@@ -94,14 +95,25 @@ class CompiledStub(object):
         """
         add a constant
         """
-        if const in self._constants_map:
+        if self._get_constant_index(const):
             return
 
         if self.n_const >= 65536:
             raise TooManyConstants()
 
         self._consts.append(const)
-        self._constants_map[const] = self.n_const - 1
+
+    def add_variable(self, var_name):
+        """
+        add a variable
+        """
+        if self._get_variable_index(var_name):
+            return
+
+        if self.n_var >= 65536:
+            raise TooManyVariables()
+
+        self._vars.append(var_name)
 
     @property
     def n_const(self):
@@ -109,6 +121,13 @@ class CompiledStub(object):
         get number of constants
         """
         return len(self._consts)
+
+    @property
+    def n_var(self):
+        """
+        get number of variables
+        """
+        return len(self._vars)
 
     def dis_code_object(self):
         """
@@ -184,10 +203,20 @@ class CompiledStub(object):
             struct.pack("H", var_index))
 
     @invoke
-    def invoke_store_global(self, var_index):
+    def invoke_store_global(self, var_name):
+        idx = self._get_variable_index_or_store(var_name)
+
         return (
             struct.pack("B", opmap["STORE_GLOBAL"]),
-            struct.pack("H", var_index))
+            struct.pack("H", idx))
+
+    @invoke
+    def invoke_load_global(self, var_name):
+        idx = self._get_variable_index_or_store(var_name)
+
+        return (
+            struct.pack("B", opmap["LOAD_GLOBAL"]),
+            struct.pack("H", idx))
 
     # ~ other helpers
     def _gen_code(self, *args):
@@ -197,6 +226,20 @@ class CompiledStub(object):
         return type(__useless.__code__)(*args)
 
     def _get_constant_index(self, const):
-        if const is None:
-            return 0
-        return self._constants_map.get(const)
+        try:
+            return self._consts.index(const)
+        except ValueError:
+            return None
+
+    def _get_variable_index(self, var_name):
+        try:
+            return self._vars.index(var_name)
+        except ValueError:
+            return None
+
+    def _get_variable_index_or_store(self, var_name):
+        try:
+            return self._vars.index(var_name)
+        except ValueError:
+            self._vars.append(var_name)
+            return self.n_var - 1

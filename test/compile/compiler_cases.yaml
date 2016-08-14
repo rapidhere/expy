@@ -15,3 +15,9 @@
 
 - expression: 1 * -++-+-5
   result: -5
+
+- expression: a + b
+  variables:
+    a: 10
+    b: 2
+  result: 12
