@@ -38,7 +38,8 @@ class CompiledStub(object):
 
         # None is always the first const
         self._consts = [None]
-        self._vars = [const.Stub.RET_VARNAME]
+        self._global_vars = [const.Stub.RET_VARNAME]
+        self._local_vars = []
 
         self._bytecodes = []
 
@@ -53,6 +54,23 @@ class CompiledStub(object):
 
         :pack_print: pack print info instructions in code object
         """
+        precode = []
+        # load ctx into fast
+        for li in xrange(len(self._local_vars)):
+            var = self._local_vars[li]
+            gi = self._get_global_variable_index_or_store(var[1:])
+
+            c1, c2 = self._invoke_load_global_by_idx(gi)
+            c3, c4 = self._invoke_store_fast_by_idx(li)
+
+            precode.append(c1)
+            precode.append(c2)
+            precode.append(c3)
+            precode.append(c4)
+
+        # prepend pre code
+        self._bytecodes = precode + self._bytecodes
+
         # pack return instruction
         self.invoke_store_global(const.Stub.RET_VARNAME)
         self.invoke_load_const(None)
@@ -61,13 +79,13 @@ class CompiledStub(object):
         # pack code object
         self._code = self._gen_code(
             0,                                  # argcount
-            1,                                  # nlocals
+            self.n_local_var,                   # nlocals
             stacksize,                          # statcksize
             0,                                  # TODO: flag
             ''.join(self._bytecodes),           # codes
             tuple(self._consts),                # consts
-            tuple(self._vars),                  # names
-            (),                                 # varnames
+            tuple(self._global_vars),           # names
+            tuple(self._local_vars),            # varnames
             filename,                           # filename
             "<expy stub @ %s>" % self.__hash,   # name of module
             1,                                  # lineno
@@ -78,7 +96,8 @@ class CompiledStub(object):
         # clear
         self._consts = None
         self._bytecodes = None
-        self._vars = None
+        self._global_vars = None
+        self._local_vars = None
 
     def execute(self, **ctx):
         """
@@ -91,30 +110,6 @@ class CompiledStub(object):
 
         return ctx[const.Stub.RET_VARNAME]
 
-    def add_const(self, const):
-        """
-        add a constant
-        """
-        if self._get_constant_index(const):
-            return
-
-        if self.n_const >= 65536:
-            raise TooManyConstants()
-
-        self._consts.append(const)
-
-    def add_variable(self, var_name):
-        """
-        add a variable
-        """
-        if self._get_variable_index(var_name):
-            return
-
-        if self.n_var >= 65536:
-            raise TooManyVariables()
-
-        self._vars.append(var_name)
-
     @property
     def n_const(self):
         """
@@ -123,11 +118,18 @@ class CompiledStub(object):
         return len(self._consts)
 
     @property
-    def n_var(self):
+    def n_global_var(self):
         """
-        get number of variables
+        get number of global variables
         """
-        return len(self._vars)
+        return len(self._global_vars)
+
+    @property
+    def n_local_var(self):
+        """
+        get number of local variables
+        """
+        return len(self._local_vars)
 
     def dis_code_object(self):
         """
@@ -151,14 +153,8 @@ class CompiledStub(object):
     # ~ bytecode invoking helpers
     @invoke
     def invoke_load_const(self, const):
-        idx = self._get_constant_index(const)
-        if idx is None:
-            self.add_const(const)
-            idx = self._get_constant_index(const)
-
-        return (
-            struct.pack("B", opmap["LOAD_CONST"]),
-            struct.pack("H", idx))  # NOTE: number of const cannot exceed 65536
+        idx = self._get_constant_index_or_store(const)
+        return self._invoke_load_const_by_idx(idx)
 
     @invoke
     def invoke_binary_add(self):
@@ -201,14 +197,20 @@ class CompiledStub(object):
         return struct.pack("B", opmap["UNARY_POSITIVE"])
 
     @invoke
-    def invoke_store_fast(self, var_index):
+    def invoke_store_fast(self, var_name):
+        idx = self._get_local_variable_index_or_store(var_name)
+        return self._invoke_store_fast_by_idx(idx)
+
+    @invoke
+    def invoke_load_fast(self, var_name):
+        idx = self._get_local_variable_index_or_store(var_name)
         return (
-            struct.pack("B", opmap["STORE_FAST"]),
-            struct.pack("H", var_index))
+            struct.pack("B", opmap["LOAD_FAST"]),
+            struct.pack("H", idx))
 
     @invoke
     def invoke_store_global(self, var_name):
-        idx = self._get_variable_index_or_store(var_name)
+        idx = self._get_global_variable_index_or_store(var_name)
 
         return (
             struct.pack("B", opmap["STORE_GLOBAL"]),
@@ -216,11 +218,8 @@ class CompiledStub(object):
 
     @invoke
     def invoke_load_global(self, var_name):
-        idx = self._get_variable_index_or_store(var_name)
-
-        return (
-            struct.pack("B", opmap["LOAD_GLOBAL"]),
-            struct.pack("H", idx))
+        idx = self._get_global_variable_index_or_store(var_name)
+        return self._invoke_load_global_by_idx(idx)
 
     # ~ other helpers
     def _gen_code(self, *args):
@@ -229,21 +228,48 @@ class CompiledStub(object):
             return
         return type(__useless.__code__)(*args)
 
-    def _get_constant_index(self, const):
+    def _invoke_load_const_by_idx(self, idx):
+        return (
+            struct.pack("B", opmap["LOAD_CONST"]),
+            struct.pack("H", idx))
+
+    def _invoke_load_global_by_idx(self, idx):
+        return (
+            struct.pack("B", opmap["LOAD_GLOBAL"]),
+            struct.pack("H", idx))
+
+    def _invoke_store_fast_by_idx(self, idx):
+        return (
+            struct.pack("B", opmap["STORE_FAST"]),
+            struct.pack("H", idx))
+
+    def _get_constant_index_or_store(self, const):
         try:
             return self._consts.index(const)
         except ValueError:
-            return None
+            if self.n_const >= 65536:
+                raise TooManyConstants()
 
-    def _get_variable_index(self, var_name):
-        try:
-            return self._vars.index(var_name)
-        except ValueError:
-            return None
+            self._consts.append(const)
+            return self.n_const - 1
 
-    def _get_variable_index_or_store(self, var_name):
+    def _get_global_variable_index_or_store(self, var_name):
         try:
-            return self._vars.index(var_name)
+            return self._global_vars.index(var_name)
         except ValueError:
-            self._vars.append(var_name)
-            return self.n_var - 1
+            if self.n_global_var >= 65536:
+                raise TooManyVariables()
+
+            self._global_vars.append(var_name)
+            return self.n_global_var - 1
+
+    def _get_local_variable_index_or_store(self, var_name):
+        try:
+            var_name = "_" + var_name
+            return self._local_vars.index(var_name)
+        except ValueError:
+            if self.n_local_var >= 65536:
+                raise TooManyVariables()
+
+            self._local_vars.append(var_name)
+            return self.n_local_var - 1

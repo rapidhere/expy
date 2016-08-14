@@ -27,3 +27,11 @@
     a: 5
     b: 2
   result: 3
+
+- expression: a / b + b - c * d
+  variables:
+    a: 5
+    b: 2
+    c: 10
+    d: 3
+  result: -26

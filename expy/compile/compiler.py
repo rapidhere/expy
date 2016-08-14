@@ -99,6 +99,6 @@ class Compiler(object):
         if token == Number:
             stub.invoke_load_const(token.value)
         elif token == Id:
-            stub.invoke_load_global(token.value)
+            stub.invoke_load_fast(token.value)
         else:
             raise UnsupportedValueType(token)
