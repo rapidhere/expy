@@ -104,3 +104,14 @@
            expression:
              class: PrimaryExpression
              token: 1
+
+- expression: 'var_a - var_b'
+  ast:
+    class: BinaryExpression
+    operator: '-'
+    left:
+      class: PrimaryExpression
+      token: var_a
+    right:
+      class: PrimaryExpression
+      token: var_b

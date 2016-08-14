@@ -21,13 +21,14 @@ UNARY_EXPRESSION =
 
 PRIMARY_EXPRESSION =
   | NUMBER
+  | ID
 
 Author: rapidhere@gmail.com
 """
 __author__ = "rapidhere@gmail.com"
 
 from lexer import Lexer
-from token import Number, Plus, Minus, Multiple, Divide
+from token import Number, Plus, Minus, Multiple, Divide, Id
 from absyn import PrimaryExpression, BinaryExpression, UnaryExpression
 
 from expy.exception import UnexpectedToken, UnexpectedEOF
@@ -83,7 +84,7 @@ class Parser(object):
     def _parse_unary_expression(self):
         token = self.lexer.peek()
 
-        if token == Number:
+        if token == Number or token == Id:
             return self._parse_primary()
         elif token == Plus or token == Minus:
             self.lexer.next()
@@ -97,6 +98,8 @@ class Parser(object):
         token = self.lexer.peek()
 
         if token == Number:
+            return PrimaryExpression(self.lexer.next())
+        elif token == Id:
             return PrimaryExpression(self.lexer.next())
         else:
             raise UnexpectedToken(token)

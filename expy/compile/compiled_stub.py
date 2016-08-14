@@ -62,7 +62,7 @@ class CompiledStub(object):
             0,                                  # argcount
             1,                                  # nlocals
             stacksize,                          # statcksize
-            64,                                 # TODO: flag
+            0,                                  # TODO: flag
             ''.join(self._bytecodes),           # codes
             tuple(self._consts),                # consts
             (const.Stub.RET_VARNAME,),          # names
