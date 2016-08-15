@@ -17,6 +17,9 @@ class BaseAbstractSyntax(object):
     def __eq__(self, another):
         return isinstance(another, self.__class__) or issubclass(another, self.__class__)
 
+    def __ne__(self, another):
+        return not self.__eq__(another)
+
     @property
     def position(self):
         """
@@ -86,7 +89,25 @@ class PrimaryExpression(Expression):
     def position(self):
         return self.token.start_pos
 
-    def dump(self, indent=0):
+    def dump(self):
         return {
             "class": self.__class__.__name__,
             "token": self.token.value}
+
+
+class FunctionCallExpression(Expression):
+    """
+    Function call expression
+    """
+    def __init__(self, id, args):
+        self.id = id
+        self.arguments = args
+
+    def position(self):
+        return self.id.start_pos
+
+    def dump(self):
+        return {
+            "class": self.__class__.__name__,
+            "id": self.id.value,
+            "arguments": [arg.dump() for arg in self.arguments]}

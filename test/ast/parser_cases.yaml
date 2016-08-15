@@ -115,3 +115,13 @@
     right:
       class: PrimaryExpression
       token: var_b
+
+- expression: 'add(1, 2)'
+  ast:
+    class: FunctionCallExpression
+    id: add
+    arguments:
+      - class: PrimaryExpression
+        token: 1
+      - class: PrimaryExpression
+        token: 2

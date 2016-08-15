@@ -18,7 +18,14 @@ BINARY_EXPRESSION =
 UNARY_EXPRESSION =
   | - EXPRESSION
   | + EXPRESSION
+  | SINGLE_EXPRESSION
+
+SINGLE_EXPRESSION =
   | PRIMARY_EXPRESSION
+  | FUNCTION_CALL_EXPRESSION
+
+FUNCTION_CALL_EXPRESSION =
+  | ID ( expression0, expression1 ... )
 
 PRIMARY_EXPRESSION =
   | NUMBER
@@ -29,8 +36,8 @@ Author: rapidhere@gmail.com
 __author__ = "rapidhere@gmail.com"
 
 from lexer import Lexer
-from token import Number, Plus, Minus, Multiple, Divide, Mod, Id
-from absyn import PrimaryExpression, BinaryExpression, UnaryExpression
+from token import Number, Plus, Minus, Multiple, Divide, Mod, Id, LeftParenthesis, RightParenthesis, Comma
+from absyn import PrimaryExpression, BinaryExpression, UnaryExpression, FunctionCallExpression
 
 from expy.exception import UnexpectedToken, UnexpectedEOF
 
@@ -68,12 +75,11 @@ class Parser(object):
         ex_stack.append(self._parse_unary_expression())
 
         while True:
-            try:
-                op = self._next_binary_op()
-                pop_op_stack(op)
-                op_stack.append(op)
-            except UnexpectedEOF:
+            op = self._next_binary_op()
+            if op is None:
                 break
+            pop_op_stack(op)
+            op_stack.append(op)
 
             exp = self._parse_unary_expression()
             ex_stack.append(exp)
@@ -85,32 +91,36 @@ class Parser(object):
     def _parse_unary_expression(self):
         token = self.lexer.peek()
 
-        if token == Number or token == Id:
-            return self._parse_primary()
-        elif token == Plus or token == Minus:
+        if token == Plus or token == Minus:
             self.lexer.next()
             # can only be unary expression here
             exp = self._parse_unary_expression()
             return UnaryExpression(token, exp)
         else:
+            return self._parse_single_expression()
+
+    def _parse_single_expression(self):
+        token = self.lexer.next()
+
+        if token not in (Number, Id):
             raise UnexpectedToken(token)
 
-    def _parse_primary(self):
-        token = self.lexer.peek()
+        if token != Number and self.lexer.peek() == LeftParenthesis:
+            args = []
 
-        if token == Number:
-            return PrimaryExpression(self.lexer.next())
-        elif token == Id:
-            return PrimaryExpression(self.lexer.next())
+            while not self.lexer.peek() == RightParenthesis:
+                self.lexer.next()
+                args.append(self._parse_expression())
+
+                comma = self.lexer.peek()
+                if comma not in (Comma, RightParenthesis):
+                    raise UnexpectedToken(comma)
+            self.lexer.next()
+            return FunctionCallExpression(token, args)
         else:
-            raise UnexpectedToken(token)
+            return PrimaryExpression(token)
 
     def _next_binary_op(self):
-        token = self.lexer.next()
-        if token is None:
-            raise UnexpectedEOF()
-
-        if token not in (Plus, Minus, Multiple, Divide, Mod):
-            raise UnexpectedToken(token)
-
-        return token
+        if self.lexer.peek() not in (Plus, Minus, Multiple, Divide, Mod):
+            return None
+        return self.lexer.next()

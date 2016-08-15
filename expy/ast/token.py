@@ -33,6 +33,9 @@ class Token(object):
     def __eq__(self, another_token):
         return isinstance(another_token, self.__class__) or issubclass(another_token, self.__class__)
 
+    def __ne__(self, another_token):
+        return not self.__eq__(another_token)
+
     @classmethod
     def _get_table(cls):
         if cls._table is None:
@@ -139,6 +142,27 @@ class Mod(Token):
     binop_priority = 1
 
 
+class LeftParenthesis(Token):
+    """
+    Left Parenthesis token
+    """
+    regex = "( )\\(( )"
+
+
+class RightParenthesis(Token):
+    """
+    Right Parenthesis token
+    """
+    regex = "( )\\)( )"
+
+
+class Comma(Token):
+    """
+    Comma token
+    """
+    regex = "( )\\,( )"
+
+
 tokens = (
     Plus,
     Minus,
@@ -146,4 +170,7 @@ tokens = (
     Divide,
     Mod,
     Number,
-    Id)
+    Id,
+    LeftParenthesis,
+    RightParenthesis,
+    Comma)
