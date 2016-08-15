@@ -9,7 +9,7 @@ __author__ = "rapidhere@gmail.com"
 from compiled_stub import CompiledStub
 
 from expy.ast import Parser
-from expy.ast.absyn import BinaryExpression, UnaryExpression, PrimaryExpression
+from expy.ast.absyn import BinaryExpression, UnaryExpression, PrimaryExpression, FunctionCallExpression
 from expy.ast.token import Number, Minus, Plus, Divide, Multiple, Mod, Id
 from expy.exception import UnsupportedExpression, UnsupportedOperator, UnsupportedValueType
 from expy import const
@@ -62,8 +62,15 @@ class Compiler(object):
             return self._compile_unary_expression(ast, stub)
         elif ast == PrimaryExpression:
             return self._compile_primary_expression(ast, stub)
+        elif ast == FunctionCallExpression:
+            self._compile_function_call_expression(ast, stub)
         else:
             raise UnsupportedExpression(ast)
+
+    def _compile_function_call_expression(self, ast, stub):
+        for arg_exp in ast.arguments:
+            self._compile_expression(arg_exp, stub)
+        stub.invoke_expy_function(ast.id.value)
 
     def _compile_binary_expression(self, ast, stub):
         op = ast.operator

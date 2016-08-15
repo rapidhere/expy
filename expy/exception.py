@@ -94,3 +94,12 @@ class TooManyVariables(ExpyCompilingError):
     def __init__(self):
         EnvironmentError.__init__(
             self, "too many variables in the expression!")
+
+
+class NoSuchFunction(ExpyCompilingError):
+    """
+    no such function
+    """
+    def __init__(self, func_name):
+        ExpyCompilingError.__init__(
+            self, "no such function: " + func_name)

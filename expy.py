@@ -43,12 +43,12 @@ def run():
     args = parser.parse_args()
     compiler = Compiler()
 
-#    try:
-    stub = compiler.compile(args.expression)
-    # except ExpyCompilingError as e:
-    #     print "compiling failed: "
-    #     print "    " + str(e)
-    #     exit(1)
+    try:
+        stub = compiler.compile(args.expression)
+    except ExpyCompilingError as e:
+        print "compiling failed: "
+        print "    " + str(e)
+        exit(1)
 
     if args.print_dis:
         print "byte code disassamble Info: "

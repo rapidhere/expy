@@ -39,7 +39,7 @@ from lexer import Lexer
 from token import Number, Plus, Minus, Multiple, Divide, Mod, Id, LeftParenthesis, RightParenthesis, Comma
 from absyn import PrimaryExpression, BinaryExpression, UnaryExpression, FunctionCallExpression
 
-from expy.exception import UnexpectedToken, UnexpectedEOF
+from expy.exception import UnexpectedToken
 
 
 class Parser(object):
