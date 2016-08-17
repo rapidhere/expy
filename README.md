@@ -12,14 +12,13 @@ Usage
 
 ```
 $ python expy.py "a + b * 3.0" --variables="a=2,b=3" --print-dis
-
 byte code disassamble Info:
   1           0 LOAD_GLOBAL              1 (a)
-              3 STORE_FAST               0 (_a)
+              3 STORE_FAST               0 (a)
               6 LOAD_GLOBAL              2 (b)
-              9 STORE_FAST               1 (_b)
-             12 LOAD_FAST                0 (_a)
-             15 LOAD_FAST                1 (_b)
+              9 STORE_FAST               1 (b)
+             12 LOAD_FAST                0 (a)
+             15 LOAD_FAST                1 (b)
              18 LOAD_CONST               1 (3.0)
              21 BINARY_MULTIPLY
              22 BINARY_ADD
@@ -34,6 +33,7 @@ variables:
 execute `a + b * 3.0`
 
   > 11.0
+
 ```
 
 Run test
