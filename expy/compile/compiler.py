@@ -7,6 +7,7 @@ Author: rapidhere@gmail.com
 __author__ = "rapidhere@gmail.com"
 
 from compiled_stub import CompiledStub
+from function import check_and_invoke_function
 
 from expy.ast import Parser
 from expy.ast.absyn import BinaryExpression, UnaryExpression, PrimaryExpression, FunctionCallExpression
@@ -70,7 +71,8 @@ class Compiler(object):
     def _compile_function_call_expression(self, ast, stub):
         for arg_exp in ast.arguments:
             self._compile_expression(arg_exp, stub)
-        stub.invoke_expy_function(ast.id.value)
+
+        check_and_invoke_function(ast.id.value, ast.arguments, stub)
 
     def _compile_binary_expression(self, ast, stub):
         op = ast.operator

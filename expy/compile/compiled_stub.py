@@ -13,8 +13,6 @@ import dis
 from expy.exception import TooManyConstants, TooManyVariables
 from expy import const
 
-import function
-
 
 # dec
 def invoke(f):
@@ -223,11 +221,6 @@ class CompiledStub(object):
     def invoke_load_global(self, var_name):
         idx = self._get_global_variable_index_or_store(var_name)
         return self._invoke_load_global_by_idx(idx)
-
-    @invoke
-    def invoke_expy_function(self, func_name):
-        function.invoke_function(func_name, self)
-        return ()
 
     # ~ other helpers
     def _gen_code(self, *args):

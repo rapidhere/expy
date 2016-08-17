@@ -107,3 +107,12 @@ class NoSuchFunction(ExpyCompilingError):
     def __init__(self, func_name):
         ExpyCompilingError.__init__(
             self, "no such function: " + func_name)
+
+
+class FunctionArgumentsLengthError(ExpyCompilingError):
+    """
+    arugments length error
+    """
+    def __init__(self, func_name, required, real):
+        ExpyCompilingError.__init__(
+            self, "function `%s` required %d arguments, get %d" % (func_name, required, real))
