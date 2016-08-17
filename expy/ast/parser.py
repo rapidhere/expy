@@ -21,6 +21,7 @@ UNARY_EXPRESSION =
   | SINGLE_EXPRESSION
 
 SINGLE_EXPRESSION =
+  | ( EXPRESSION )
   | PRIMARY_EXPRESSION
   | FUNCTION_CALL_EXPRESSION
 
@@ -100,8 +101,15 @@ class Parser(object):
             return self._parse_single_expression()
 
     def _parse_single_expression(self):
-        token = self.lexer.next()
+        if self.lexer.peek() == LeftParenthesis:
+            self.lexer.next()
+            exp = self._parse_expression()
+            if self.lexer.next() != RightParenthesis:
+                raise UnexpectedToken(self.lexer.peek())
 
+            return exp
+
+        token = self.lexer.next()
         if token not in (Number, Id):
             raise UnexpectedToken(token)
 

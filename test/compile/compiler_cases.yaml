@@ -28,6 +28,12 @@
     b: 2
   result: 3
 
+- expression: a % (b + 2)
+  variables:
+    a: 5
+    b: 2
+  result: 1
+
 - expression: a / b + b - c * d
   variables:
     a: 5

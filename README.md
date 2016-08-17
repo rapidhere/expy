@@ -41,7 +41,7 @@ Run test
 
 ```
 pip install -r requirements.txt
-python text/run.py
+python test/run.py
 ```
 
 LICENSE

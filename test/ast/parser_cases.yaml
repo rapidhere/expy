@@ -125,3 +125,20 @@
         token: 1
       - class: PrimaryExpression
         token: 2
+
+- expression: '3 * (1 + 2)'
+  ast:
+    class: BinaryExpression
+    operator: '*'
+    left:
+      class: PrimaryExpression
+      token: 3
+    right:
+      class: BinaryExpression
+      operator: '+'
+      left:
+        class: PrimaryExpression
+        token: 1
+      right:
+        class: PrimaryExpression
+        token: 2

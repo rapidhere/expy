@@ -46,9 +46,13 @@ class UnexpectedToken(ExpySyntaxError):
     Unexpected Token
     """
     def __init__(self, token):
-        ExpySyntaxError.__init__(
-            self, "unexpected token %s `%s` at %d" %
-            (token.__class__.__name__, str(token.value), token.start_pos))
+        if token is not None:
+            ExpySyntaxError.__init__(
+                self, "unexpected token %s `%s` at %d" %
+                (token.__class__.__name__, str(token.value), token.start_pos))
+        else:
+            ExpySyntaxError.__init__(
+                self, "unexpeceted end of file")
 
 
 class UnsupportedExpression(ExpyCompilingError):
