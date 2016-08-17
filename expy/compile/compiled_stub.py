@@ -61,7 +61,7 @@ class CompiledStub(object):
         # load ctx into fast
         for li in xrange(len(self._local_vars)):
             var = self._local_vars[li]
-            gi = self._get_global_variable_index_or_store(var[1:])
+            gi = self._get_global_variable_index_or_store(var)
 
             c1, c2 = self._invoke_load_global_by_idx(gi)
             c3, c4 = self._invoke_store_fast_by_idx(li)
@@ -273,7 +273,7 @@ class CompiledStub(object):
 
     def _get_local_variable_index_or_store(self, var_name):
         try:
-            var_name = "_" + var_name
+            # var_name = "_" + var_name
             return self._local_vars.index(var_name)
         except ValueError:
             if self.n_local_var >= 65536:
