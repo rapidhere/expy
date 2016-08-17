@@ -114,19 +114,27 @@ class Parser(object):
             raise UnexpectedToken(token)
 
         if token != Number and self.lexer.peek() == LeftParenthesis:
-            args = []
-
-            while not self.lexer.peek() == RightParenthesis:
-                self.lexer.next()
-                args.append(self._parse_expression())
-
-                comma = self.lexer.peek()
-                if comma not in (Comma, RightParenthesis):
-                    raise UnexpectedToken(comma)
-            self.lexer.next()
-            return FunctionCallExpression(token, args)
+            return self._parse_function_call_expression(token)
         else:
             return PrimaryExpression(token)
+
+    def _parse_function_call_expression(self, id):
+        # read up LeftParenthesis
+        self.lexer.next()
+
+        if self.lexer.peek() == RightParenthesis:
+            return FunctionCallExpression(id, [])
+
+        args = []
+        while True:
+            args.append(self._parse_expression())
+
+            comma = self.lexer.next()
+            if comma == RightParenthesis:
+                break
+            elif comma != Comma:
+                raise UnexpectedToken(comma)
+        return FunctionCallExpression(id, args)
 
     def _next_binary_op(self):
         if self.lexer.peek() not in (Plus, Minus, Multiple, Divide, Mod):

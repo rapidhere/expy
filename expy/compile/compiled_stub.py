@@ -222,6 +222,10 @@ class CompiledStub(object):
         idx = self._get_global_variable_index_or_store(var_name)
         return self._invoke_load_global_by_idx(idx)
 
+    @invoke
+    def invoke_nop(self):
+        return struct.pack("B", opmap["NOP"])
+
     # ~ other helpers
     def _gen_code(self, *args):
         # a trick to get code object

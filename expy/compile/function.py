@@ -51,3 +51,8 @@ def add(stub):
 @expy_func(2)
 def sub(stub):
     stub.invoke_binary_subtract()
+
+
+@expy_func(1)
+def nop(stub):
+    stub.invoke_nop()

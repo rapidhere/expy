@@ -57,3 +57,6 @@
     b: 4
     c: 5
   result: 4.0
+
+- expression: 'nop(1 + 2 + 3)'
+  result: 6
