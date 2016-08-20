@@ -1,2 +1,4 @@
 pyyaml
 py_expression_eval
+simpleeval
+asteval
