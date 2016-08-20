@@ -40,17 +40,17 @@ A simple benchmark
 ---
 ```
 >>> benchmark on: long multiply
-expy: 0.00240ms
-eval: 0.04090ms
-py_expression_eval: 0.03180ms
-simpeeval: 0.10650ms
-asteval: 0.15280ms
+expy: 0.00170ms
+eval: 0.03360ms
+py_expression_eval: 0.02980ms
+simpeeval: 0.10370ms
+asteval: 0.14570ms
 
 >>> benchmark on: large power
-expy: 63.15000ms
-eval: 66.10000ms
+expy: 60.05000ms
+eval: 60.25000ms
 py_expression_eval: N/A
-simpeeval: 63.15000ms
+simpeeval: 60.05000ms
 asteval: N/A
 ```
 

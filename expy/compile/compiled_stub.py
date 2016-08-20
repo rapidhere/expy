@@ -142,9 +142,6 @@ class CompiledStub(object):
         """
         Execute the stub
         """
-        if self._code is None:
-            raise RuntimeError("Please pack the code object first")
-
         exec self._code in ctx
 
         return ctx[const.Stub.RET_VARNAME]
