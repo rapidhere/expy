@@ -40,10 +40,10 @@ A simple benchmark
 ---
 ```
 >>> benchmark on: long multiply
-    expy: 0.00530ms eval: 0.13460ms
+    expy: 0.00480ms eval: 0.13040ms py_expression_eval: 0.14830ms
 
 >>> benchmark on: large power
-    expy: 60.70000ms eval: 60.80000ms
+    expy: 61.04000ms eval: 61.44000ms py_expression_eval: N/A
 ```
 
 Run test
