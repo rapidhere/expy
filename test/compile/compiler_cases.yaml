@@ -111,3 +111,6 @@
 
 - expression: 'power(0, 0)'
   result: 1
+
+- expression: 'power(2, power(3, 4)) + 1'
+  result: 2417851639229258349412353
