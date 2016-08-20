@@ -60,3 +60,54 @@
 
 - expression: 'nop(1 + 2 + 3)'
   result: 6
+
+- expression: 'power(2, 0)'
+  result: 1
+
+- expression: 'power(2, 1)'
+  result: 2
+
+- expression: 'power(2, 2)'
+  result: 4
+
+- expression: 'power(2, 3)'
+  result: 8
+
+- expression: 'power(2, 4)'
+  result: 16
+
+- expression: 'power(2, 5)'
+  result: 32
+
+- expression: 'power(2, 6)'
+  result: 64
+
+- expression: 'power(2, 7)'
+  result: 128
+
+- expression: 'power(2, 8)'
+  result: 256
+
+- expression: 'power(2, 9)'
+  result: 512
+
+- expression: 'power(2, 10)'
+  result: 1024
+
+- expression: 'power(2, 11)'
+  result: 2048
+
+- expression: 'power(2, 12)'
+  result: 4096
+
+- expression: 'power(2, 13)'
+  result: 8192
+
+- expression: 'power(2, 14)'
+  result: 16384
+
+- expression: 'power(2, 15)'
+  result: 32768
+
+- expression: 'power(0, 0)'
+  result: 1

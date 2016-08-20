@@ -36,6 +36,16 @@ execute `a + b * 3.0`
 
 ```
 
+A simple benchmark
+---
+```
+>>> benchmark on: long multiply
+    expy: 0.00530ms eval: 0.13460ms
+
+>>> benchmark on: large power
+    expy: 60.70000ms eval: 60.80000ms
+```
+
 Run test
 ---
 

@@ -21,3 +21,9 @@ class Function(object):
     """
     FUNCMAP_KEY_FUNC = "func"
     FUNCMAP_KEY_ARGLEN = "arglen"
+
+    POWER_A_VARNAME = "__a__"
+    POWER_U_VARNAME = "__u__"
+    POWER_N_LOOP_LABEL = "__power_nloop__"
+    POWER_C_LOOP_LABEL = "__power_cloop__"
+    POWER_END_LABEL = "__power_end__"
