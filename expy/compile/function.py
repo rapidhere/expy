@@ -128,3 +128,83 @@ def power(stub):
     stub.set_label(const.Function.POWER_END_LABEL)
     # pop top -1
     stub.invoke_pop_top()
+
+
+@expy_func(3)
+def powermod(stub):
+    # NOTE: see @func expy_func
+    # args a, n, m
+    # n is always on the top of stack
+
+    # we need these labels in this scope:
+    stub.require_label(const.Function.POWERMOD_N_LOOP_LABEL)
+    stub.require_label(const.Function.POWERMOD_C_LOOP_LABEL)
+    stub.require_label(const.Function.POWERMOD_END_LABEL)
+
+    # store m
+    stub.invoke_store_fast(const.Function.POWERMOD_M_VARNAME)
+
+    # store a mod m
+    stub.invoke_rot(2)
+    stub.invoke_load_fast(const.Function.POWERMOD_M_VARNAME)
+    stub.invoke_binary_modulo()
+    stub.invoke_store_fast(const.Function.POWERMOD_A_VARNAME)
+
+    # ~ first: push n bits into stac
+    # insert a end bit, -1
+    stub.invoke_load_const(-1)
+    stub.invoke_rot(2)
+
+    # label: __n_while_start
+    stub.set_label(const.Function.POWERMOD_N_LOOP_LABEL)
+    # push n & 1 on stack
+    stub.invoke_dup_top()
+    stub.invoke_load_const(1)
+    stub.invoke_binary_and()
+
+    # n = n >> 1
+    stub.invoke_rot(2)
+    stub.invoke_load_const(1)
+    stub.invoke_binary_rshift()
+
+    # if n == 0, end loop
+    stub.invoke_jump_if_true_or_pop(const.Function.POWERMOD_N_LOOP_LABEL)
+
+    # ~ second: calc result
+    # u = 1
+    stub.invoke_load_const(1)
+
+    # label: __c_while_start
+    stub.set_label(const.Function.POWERMOD_C_LOOP_LABEL)
+
+    # if bit < 0, end loop
+    stub.invoke_rot(2)
+    stub.invoke_dup_top()
+    stub.invoke_load_const(0)
+    stub.invoke_compare_op("<")
+    stub.invoke_pop_jump_if_true(const.Function.POWERMOD_END_LABEL)
+    stub.invoke_rot(2)
+
+    # u = u * u modulo m
+    stub.invoke_dup_top()
+    stub.invoke_binary_multiple()
+    stub.invoke_load_fast(const.Function.POWERMOD_M_VARNAME)
+    stub.invoke_binary_modulo()
+
+    # put bit to the top
+    stub.invoke_rot(2)
+
+    # if bit == 0, next loop
+    stub.invoke_pop_jump_if_false(const.Function.POWERMOD_C_LOOP_LABEL)
+
+    # if bit == 1, multiply by a
+    stub.invoke_load_fast(const.Function.POWERMOD_A_VARNAME)
+    stub.invoke_binary_multiple()
+    stub.invoke_load_fast(const.Function.POWERMOD_M_VARNAME)
+    stub.invoke_binary_modulo()
+    stub.invoke_jump_absolute(const.Function.POWERMOD_C_LOOP_LABEL)
+
+    # label: __end
+    stub.set_label(const.Function.POWERMOD_END_LABEL)
+    # pop top -1
+    stub.invoke_pop_top()

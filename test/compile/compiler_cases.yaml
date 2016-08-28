@@ -114,3 +114,9 @@
 
 - expression: 'power(2, power(3, 4)) + 1'
   result: 2417851639229258349412353
+
+- expression: 'powermod(2, 11, 31) + 1'
+  result: 2
+
+- expression: 'powermod(2, 1999999, 31)'
+  result: 16
