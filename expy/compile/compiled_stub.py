@@ -53,6 +53,9 @@ class CompiledStub(object):
         self._label_set_pos = {}
         self._label_invoke_pos = {}
 
+        self._cur_stack_size = 0
+        self._max_stack_size = 0
+    
         self._bytecodes = []
 
         self._code = None
@@ -60,11 +63,11 @@ class CompiledStub(object):
     def __hash__(self):
         return self.__hash
 
-    def pack(self, filename, stacksize=32):
+    def pack(self, filename, stacksize=-1):
         """
         Pack a compiled code object for execute
 
-        :pack_print: pack print info instructions in code object
+        :stacksize: specific the stacksize, set -1 to invoke auto stacksize
         """
         precode = []
         # load ctx into fast
@@ -113,6 +116,10 @@ class CompiledStub(object):
         self.invoke_load_const(None)
         self.invoke_return_value()
 
+        # calc stacksize
+        if stacksize < 0:
+            stacksize = self._max_stack_size
+
         # pack code object
         self._code = self._gen_code(
             0,                                  # argcount
@@ -135,8 +142,10 @@ class CompiledStub(object):
         self._bytecodes = None
         self._global_vars = None
         self._local_vars = None
-        self._label_invoke_pos = {}
-        self._label_set_pos = {}
+        self._label_invoke_pos = None
+        self._label_set_pos = None
+        self._cur_stack_size = None
+        self._max_stack_size = None
 
     def execute(self, **ctx):
         """
@@ -208,43 +217,53 @@ class CompiledStub(object):
     # ~ bytecode invoking helpers
     @invoke
     def invoke_load_const(self, const):
+        self._inc_stack_size()
         idx = self._get_constant_index_or_store(const)
         return self._invoke_load_const_by_idx(idx)
 
     @invoke
     def invoke_binary_add(self):
+        self._dec_stack_size()
         return struct.pack("B", opmap["BINARY_ADD"])
 
     @invoke
     def invoke_binary_subtract(self):
+        self._dec_stack_size()
         return struct.pack("B", opmap["BINARY_SUBTRACT"])
 
     @invoke
     def invoke_binary_multiple(self):
+        self._dec_stack_size()
         return struct.pack("B", opmap["BINARY_MULTIPLY"])
 
     @invoke
     def invoke_binary_divide(self):
+        self._dec_stack_size()
         return struct.pack("B", opmap["BINARY_DIVIDE"])
 
     @invoke
     def invoke_binary_modulo(self):
+        self._dec_stack_size()
         return struct.pack("B", opmap["BINARY_MODULO"])
 
     @invoke
     def invoke_binary_and(self):
+        self._dec_stack_size()
         return struct.pack("B", opmap["BINARY_AND"])
 
     @invoke
     def invoke_binary_power(self):
+        self._dec_stack_size()
         return struct.pack("B", opmap["BINARY_POWER"])
 
     @invoke
     def invoke_binary_rshift(self):
+        self._dec_stack_size()
         return struct.pack("B", opmap["BINARY_RSHIFT"])
 
     @invoke
     def invoke_print_item(self):
+        self._dec_stack_size()
         return struct.pack("B", opmap["PRINT_ITEM"])
 
     @invoke
@@ -253,6 +272,7 @@ class CompiledStub(object):
 
     @invoke
     def invoke_return_value(self):
+        self._dec_stack_size()
         return struct.pack("B", opmap["RETURN_VALUE"])
 
     @invoke
@@ -265,11 +285,13 @@ class CompiledStub(object):
 
     @invoke
     def invoke_store_fast(self, var_name):
+        self._dec_stack_size()
         idx = self._get_local_variable_index_or_store(var_name)
         return self._invoke_store_fast_by_idx(idx)
 
     @invoke
     def invoke_load_fast(self, var_name):
+        self._inc_stack_size()
         idx = self._get_local_variable_index_or_store(var_name)
         return (
             struct.pack("B", opmap["LOAD_FAST"]),
@@ -277,6 +299,7 @@ class CompiledStub(object):
 
     @invoke
     def invoke_store_global(self, var_name):
+        self._dec_stack_size()
         idx = self._get_global_variable_index_or_store(var_name)
 
         return (
@@ -285,6 +308,7 @@ class CompiledStub(object):
 
     @invoke
     def invoke_load_global(self, var_name):
+        self._inc_stack_size()
         idx = self._get_global_variable_index_or_store(var_name)
         return self._invoke_load_global_by_idx(idx)
 
@@ -294,6 +318,7 @@ class CompiledStub(object):
 
     @invoke
     def invoke_pop_top(self):
+        self._dec_stack_size()
         return struct.pack("B", opmap["POP_TOP"])
 
     @invoke
@@ -326,6 +351,7 @@ class CompiledStub(object):
 
     @invoke
     def invoke_dup_top(self):
+        self._inc_stack_size()
         return struct.pack("B", opmap["DUP_TOP"])
 
     @invoke
@@ -341,6 +367,7 @@ class CompiledStub(object):
 
     @invoke
     def invoke_compare_op(self, op):
+        self._dec_stack_size()
         return (
             struct.pack("B", opmap["COMPARE_OP"]),
             struct.pack("H", cmp_op.index(op)))
@@ -407,3 +434,11 @@ class CompiledStub(object):
             pos.append([])
 
         pos[-1].append(replace_pos)
+    
+    def _inc_stack_size(self, sz=1):
+        self._cur_stack_size += sz
+        if self._cur_stack_size > self._max_stack_size:
+            self._max_stack_size = self._cur_stack_size
+    
+    def _dec_stack_size(self, sz=1):
+        self._cur_stack_size -= sz
