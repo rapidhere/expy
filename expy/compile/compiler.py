@@ -48,36 +48,53 @@ class Compiler(object):
         # compile and store a new one
         ast = self._parser.parse(expression)
         stub = CompiledStub(expression)
-        self._compile_expression(ast, stub)
+        self._do_compile(ast, stub)
         self.store_stub(expression, stub)
 
         # pack the stub for next executing or dumping
         stub.pack(const.Stub.STUB_FILENAME, **kwargs)
 
         return stub
+    
+    def _do_compile(self, ast, stub):
+        stack = []
+        
+        # init stack
+        stack.append(self._compile_expression(ast, stub))
 
+        while stack:
+            topf = stack.pop(-1)
+
+            try:
+                nextf = topf.next()
+                stack.append(topf)
+                if nextf is not None:
+                    stack.append(nextf)
+            except StopIteration:
+                pass
+    
     def _compile_expression(self, ast, stub):
         if ast == BinaryExpression:
-            return self._compile_binary_expression(ast, stub)
+            yield self._compile_binary_expression(ast, stub)
         elif ast == UnaryExpression:
-            return self._compile_unary_expression(ast, stub)
+            yield self._compile_unary_expression(ast, stub)
         elif ast == PrimaryExpression:
-            return self._compile_primary_expression(ast, stub)
+            yield self._compile_primary_expression(ast, stub)
         elif ast == FunctionCallExpression:
-            self._compile_function_call_expression(ast, stub)
+            yield self._compile_function_call_expression(ast, stub)
         else:
             raise UnsupportedExpression(ast)
-
+    
     def _compile_function_call_expression(self, ast, stub):
         for arg_exp in ast.arguments:
-            self._compile_expression(arg_exp, stub)
+            yield self._compile_expression(arg_exp, stub)
 
         check_and_invoke_function(ast.id.value, ast.arguments, stub)
-
+    
     def _compile_binary_expression(self, ast, stub):
         op = ast.operator
-        self._compile_expression(ast.left, stub)
-        self._compile_expression(ast.right, stub)
+        yield self._compile_expression(ast.left, stub)
+        yield self._compile_expression(ast.right, stub)
 
         if op == Plus:
             stub.invoke_binary_add()
@@ -91,10 +108,10 @@ class Compiler(object):
             stub.invoke_binary_modulo()
         else:
             raise UnsupportedOperator(op)
-
+    
     def _compile_unary_expression(self, ast, stub):
         op = ast.operator
-        self._compile_expression(ast.expression, stub)
+        yield self._compile_expression(ast.expression, stub)
 
         if op == Plus:
             stub.invoke_unary_positive()
@@ -102,7 +119,7 @@ class Compiler(object):
             stub.invoke_unary_negative()
         else:
             raise UnsupportedOperator(op)
-
+    
     def _compile_primary_expression(self, ast, stub):
         token = ast.token
         if token == Number:
