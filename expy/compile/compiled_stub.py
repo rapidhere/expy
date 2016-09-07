@@ -55,7 +55,7 @@ class CompiledStub(object):
 
         self._cur_stack_size = 0
         self._max_stack_size = 0
-    
+
         self._bytecodes = []
 
         self._code = None
@@ -154,6 +154,9 @@ class CompiledStub(object):
         exec self._code in ctx
 
         return ctx[const.Stub.RET_VARNAME]
+
+    def stack_size(self, size):
+        pass
 
     @property
     def n_const(self):
@@ -434,11 +437,11 @@ class CompiledStub(object):
             pos.append([])
 
         pos[-1].append(replace_pos)
-    
+
     def _inc_stack_size(self, sz=1):
         self._cur_stack_size += sz
         if self._cur_stack_size > self._max_stack_size:
             self._max_stack_size = self._cur_stack_size
-    
+
     def _dec_stack_size(self, sz=1):
         self._cur_stack_size -= sz

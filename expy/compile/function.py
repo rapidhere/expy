@@ -21,21 +21,26 @@ def check_and_invoke_function(func_name, args, stub):
     try:
         f = func_map[func_name]
 
-        if f[const.Function.FUNCMAP_KEY_ARGLEN] != len(args):
+        if f.expy_arglen != len(args):
             raise FunctionArgumentsLengthError(
                 func_name, f[const.Function.FUNCMAP_KEY_ARGLEN], len(args))
 
-        f[const.Function.FUNCMAP_KEY_FUNC](stub)
+        with stub.stack_size(f.expy_stacksize):
+            f(stub)
     except KeyError:
         raise NoSuchFunction(func_name)
 
 
 # dec, register a function as expy function
-def expy_func(arg_len):
+def expy_func(arg_len, stack_size=-1):
+    """
+    when stacksize set to -1, means stacksize is auto discovered, otherwise is specified
+    """
     def _dec(f):
-        func_map[f.__name__] = {
-            const.Function.FUNCMAP_KEY_FUNC: f,
-            const.Function.FUNCMAP_KEY_ARGLEN: arg_len}
+        func_map[f.__name__] = f
+
+        f.expy_arglen = arg_len
+        f.expy_stacksize = stack_size
         return f
 
     return _dec
@@ -58,7 +63,7 @@ def nop(stub):
     stub.invoke_nop()
 
 
-@expy_func(2)
+@expy_func(arg_len=2, stack_size=64)
 def power(stub):
     # NOTE: mark 0 ** 0 = 1, same as python's default behaviour
     # TODO: only available for integer indexes
@@ -130,7 +135,7 @@ def power(stub):
     stub.invoke_pop_top()
 
 
-@expy_func(3)
+@expy_func(arg_len=3, stack_size=64)
 def powermod(stub):
     # NOTE: see @func expy_func
     # args a, n, m

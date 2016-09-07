@@ -19,9 +19,6 @@ class Function(object):
     """
     Function configs
     """
-    FUNCMAP_KEY_FUNC = "func"
-    FUNCMAP_KEY_ARGLEN = "arglen"
-
     POWER_A_VARNAME = "__a__"
     POWER_U_VARNAME = "__u__"
     POWER_N_LOOP_LABEL = "__power_nloop__"
