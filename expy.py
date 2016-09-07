@@ -36,6 +36,11 @@ def run():
         default=False)
 
     parser.add_argument(
+        "--stack-size", help="specify the stack-size of the stubs",
+        type=int,
+        default=-1)
+
+    parser.add_argument(
         "--disable-print", action="store_true",
         help="disable auto print when executing",
         default=False)
@@ -44,7 +49,9 @@ def run():
     compiler = Compiler()
 
     try:
-        stub = compiler.compile(args.expression)
+        stub = compiler.compile(
+            args.expression,
+            stacksize=args.stack_size)
     except ExpyCompilingError as e:
         print "compiling failed: "
         print "    " + str(e)
