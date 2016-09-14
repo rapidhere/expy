@@ -9,6 +9,7 @@ __author__ = "rapidhere@gmail.com"
 import struct
 from opcode import opmap, cmp_op
 import dis
+import contextlib
 
 from expy.exception import TooManyConstants, TooManyVariables
 from expy import const
@@ -155,8 +156,16 @@ class CompiledStub(object):
 
         return ctx[const.Stub.RET_VARNAME]
 
+    @contextlib.contextmanager
     def stack_size(self, size):
-        pass
+        if size > 0:
+            self._inc_stack_size(size)
+
+        try:
+            yield
+        finally:
+            if size > 0:
+                self._dec_stack_size(size)
 
     @property
     def n_const(self):

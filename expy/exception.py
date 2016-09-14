@@ -96,7 +96,7 @@ class TooManyVariables(ExpyCompilingError):
     number of variables exceeded 65536
     """
     def __init__(self):
-        EnvironmentError.__init__(
+        ExpyCompilingError.__init__(
             self, "too many variables in the expression!")
 
 
