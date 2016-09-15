@@ -21,20 +21,39 @@ def append_byte(container, s):
 
 
 # dec
-def invoke(f):
-    def _f(self, *args, **kwargs):
-        byte_codes = f(self, *args, **kwargs)
-        if isinstance(byte_codes, tuple):
-            for b in byte_codes:
+def invoke(stacksize, const_var=False, global_var=False, fast_var=False, lable=False, cmp_oper=False):
+    def _dec(f):
+        def _f(self, *inargs):
+            # calc args
+            args = []
+            if const_var:
+                args.append(self._get_constant_index_or_store(inargs[0]))
+            elif global_var:
+                args.append(self._get_global_variable_index_or_store(inargs[0]))
+            elif fast_var:
+                args.append(self._get_local_variable_index_or_store(inargs[0]))
+            elif lable:
+                args.append(inargs[0])
+            elif cmp_oper:
+                args.append(cmp_op.index(inargs[0]))
+            else:
+                args = inargs
+
+            # calc stack size
+            self._inc_stack_size(stacksize)
+
+            # invoke bytecode
+            for b in f(self, *args):
                 append_byte(self._bytecodes, b)
                 self._cur_pos += len(b)
-        else:
-            append_byte(self._bytecodes, byte_codes)
-            self._cur_pos += len(byte_codes)
-        return byte_codes
 
-    _f.__name__ = f.__name__
-    return _f
+            # channing
+            return self
+
+        _f.__name__ = f.__name__
+        return _f
+
+    return _dec
 
 
 class CompiledStub(object):
@@ -80,13 +99,12 @@ class CompiledStub(object):
 
             gi = self._get_global_variable_index_or_store(var)
 
-            c1, c2 = self._invoke_load_global_by_idx(gi)
-            c3, c4 = self._invoke_store_fast_by_idx(li)
+            # needn't to calculate stack size
+            for c in self._invoke_load_global_by_idx(gi):
+                append_byte(precode, c)
 
-            append_byte(precode, c1)
-            append_byte(precode, c2)
-            append_byte(precode, c3)
-            append_byte(precode, c4)
+            for c in self._invoke_store_fast_by_idx(li):
+                append_byte(precode, c)
 
         # prepend pre code
         prelen = len(precode)
@@ -113,9 +131,9 @@ class CompiledStub(object):
                     self._bytecodes[ipos + 1] = bpos[1]
 
         # pack return instruction
-        self.invoke_store_global(const.Stub.RET_VARNAME)
-        self.invoke_load_const(None)
-        self.invoke_return_value()
+        (self.invoke_store_global(const.Stub.RET_VARNAME)
+            .invoke_load_const(None)
+            .invoke_return_value())
 
         # calc stacksize
         if stacksize < 0:
@@ -165,7 +183,7 @@ class CompiledStub(object):
             yield
         finally:
             if size > 0:
-                self._dec_stack_size(size)
+                self._inc_stack_size(-size)
 
     @property
     def n_const(self):
@@ -215,6 +233,7 @@ class CompiledStub(object):
             raise ValueError("wrong label: " + label)
 
         self._label_set_pos[label][-1] = self._cur_pos
+        return self
 
     def require_label(self, label):
         """
@@ -225,164 +244,130 @@ class CompiledStub(object):
             self._label_invoke_pos[label] = []
 
         self._label_set_pos[label].append(-1)
+        return self
 
     # ~ bytecode invoking helpers
-    @invoke
-    def invoke_load_const(self, const):
-        self._inc_stack_size()
-        idx = self._get_constant_index_or_store(const)
+    @invoke(stacksize=1, const_var=True)
+    def invoke_load_const(self, idx):
         return self._invoke_load_const_by_idx(idx)
 
-    @invoke
+    @invoke(stacksize=-1)
     def invoke_binary_add(self):
-        self._dec_stack_size()
-        return struct.pack("B", opmap["BINARY_ADD"])
+        yield struct.pack("B", opmap["BINARY_ADD"])
 
-    @invoke
+    @invoke(stacksize=-1)
     def invoke_binary_subtract(self):
-        self._dec_stack_size()
-        return struct.pack("B", opmap["BINARY_SUBTRACT"])
+        yield struct.pack("B", opmap["BINARY_SUBTRACT"])
 
-    @invoke
+    @invoke(stacksize=-1)
     def invoke_binary_multiple(self):
-        self._dec_stack_size()
-        return struct.pack("B", opmap["BINARY_MULTIPLY"])
+        yield struct.pack("B", opmap["BINARY_MULTIPLY"])
 
-    @invoke
+    @invoke(stacksize=-1)
     def invoke_binary_divide(self):
-        self._dec_stack_size()
-        return struct.pack("B", opmap["BINARY_DIVIDE"])
+        yield struct.pack("B", opmap["BINARY_DIVIDE"])
 
-    @invoke
+    @invoke(stacksize=-1)
     def invoke_binary_modulo(self):
-        self._dec_stack_size()
-        return struct.pack("B", opmap["BINARY_MODULO"])
+        yield struct.pack("B", opmap["BINARY_MODULO"])
 
-    @invoke
+    @invoke(stacksize=-1)
     def invoke_binary_and(self):
-        self._dec_stack_size()
-        return struct.pack("B", opmap["BINARY_AND"])
+        yield struct.pack("B", opmap["BINARY_AND"])
 
-    @invoke
+    @invoke(stacksize=-1)
     def invoke_binary_power(self):
-        self._dec_stack_size()
-        return struct.pack("B", opmap["BINARY_POWER"])
+        yield struct.pack("B", opmap["BINARY_POWER"])
 
-    @invoke
+    @invoke(stacksize=-1)
     def invoke_binary_rshift(self):
-        self._dec_stack_size()
-        return struct.pack("B", opmap["BINARY_RSHIFT"])
+        yield struct.pack("B", opmap["BINARY_RSHIFT"])
 
-    @invoke
+    @invoke(stacksize=-1)
     def invoke_print_item(self):
-        self._dec_stack_size()
         return struct.pack("B", opmap["PRINT_ITEM"])
 
-    @invoke
+    @invoke(stacksize=0)
     def invoke_print_newline(self):
-        return struct.pack("B", opmap["PRINT_NEWLINE"])
+        yield struct.pack("B", opmap["PRINT_NEWLINE"])
 
-    @invoke
+    @invoke(stacksize=-1)
     def invoke_return_value(self):
-        self._dec_stack_size()
-        return struct.pack("B", opmap["RETURN_VALUE"])
+        yield struct.pack("B", opmap["RETURN_VALUE"])
 
-    @invoke
+    @invoke(stacksize=0)
     def invoke_unary_negative(self):
-        return struct.pack("B", opmap["UNARY_NEGATIVE"])
+        yield struct.pack("B", opmap["UNARY_NEGATIVE"])
 
-    @invoke
+    @invoke(stacksize=0)
     def invoke_unary_positive(self):
-        return struct.pack("B", opmap["UNARY_POSITIVE"])
+        yield struct.pack("B", opmap["UNARY_POSITIVE"])
 
-    @invoke
-    def invoke_store_fast(self, var_name):
-        self._dec_stack_size()
-        idx = self._get_local_variable_index_or_store(var_name)
+    @invoke(stacksize=-1, fast_var=True)
+    def invoke_store_fast(self, idx):
         return self._invoke_store_fast_by_idx(idx)
 
-    @invoke
-    def invoke_load_fast(self, var_name):
-        self._inc_stack_size()
-        idx = self._get_local_variable_index_or_store(var_name)
-        return (
-            struct.pack("B", opmap["LOAD_FAST"]),
-            struct.pack("H", idx))
+    @invoke(stacksize=1, fast_var=True)
+    def invoke_load_fast(self, idx):
+        yield struct.pack("B", opmap["LOAD_FAST"])
+        yield struct.pack("H", idx)
 
-    @invoke
-    def invoke_store_global(self, var_name):
-        self._dec_stack_size()
-        idx = self._get_global_variable_index_or_store(var_name)
+    @invoke(stacksize=-1, global_var=True)
+    def invoke_store_global(self, idx):
+        yield struct.pack("B", opmap["STORE_GLOBAL"]),
+        yield struct.pack("H", idx)
 
-        return (
-            struct.pack("B", opmap["STORE_GLOBAL"]),
-            struct.pack("H", idx))
-
-    @invoke
-    def invoke_load_global(self, var_name):
-        self._inc_stack_size()
-        idx = self._get_global_variable_index_or_store(var_name)
+    @invoke(stacksize=1, global_var=True)
+    def invoke_load_global(self, idx):
         return self._invoke_load_global_by_idx(idx)
 
-    @invoke
+    @invoke(stacksize=0)
     def invoke_nop(self):
-        return struct.pack("B", opmap["NOP"])
+        yield struct.pack("B", opmap["NOP"])
 
-    @invoke
+    @invoke(stacksize=-1)
     def invoke_pop_top(self):
-        self._dec_stack_size()
-        return struct.pack("B", opmap["POP_TOP"])
+        yield struct.pack("B", opmap["POP_TOP"])
 
-    @invoke
+    @invoke(stacksize=0, lable=True)
     def invoke_jump_absolute(self, label):
-        self._invoke_label(label, self._cur_pos + 1)
-        return (
-            struct.pack("B", opmap["JUMP_ABSOLUTE"]),
-            struct.pack("H", 0))
+        yield struct.pack("B", opmap["JUMP_ABSOLUTE"])
+        yield self._invoke_label(label, self._cur_pos)
 
-    @invoke
+    @invoke(stacksize=-1, lable=True)
     def invoke_pop_jump_if_false(self, label):
-        self._invoke_label(label, self._cur_pos + 1)
-        return (
-            struct.pack("B", opmap["POP_JUMP_IF_FALSE"]),
-            struct.pack("H", 0))
+        yield struct.pack("B", opmap["POP_JUMP_IF_FALSE"])
+        yield self._invoke_label(label, self._cur_pos)
 
-    @invoke
+    @invoke(stacksize=-1, lable=True)
     def invoke_pop_jump_if_true(self, label):
-        self._invoke_label(label, self._cur_pos + 1)
-        return (
-            struct.pack("B", opmap["POP_JUMP_IF_TRUE"]),
-            struct.pack("H", 0))
+        yield struct.pack("B", opmap["POP_JUMP_IF_TRUE"])
+        yield self._invoke_label(label, self._cur_pos)
 
-    @invoke
+    @invoke(stacksize=-1, lable=True)
     def invoke_jump_if_true_or_pop(self, label):
-        self._invoke_label(label, self._cur_pos + 1)
-        return (
-            struct.pack("B", opmap["JUMP_IF_TRUE_OR_POP"]),
-            struct.pack("H", 0))
+        yield struct.pack("B", opmap["JUMP_IF_TRUE_OR_POP"])
+        yield self._invoke_label(label, self._cur_pos)
 
-    @invoke
+    @invoke(stacksize=1)
     def invoke_dup_top(self):
-        self._inc_stack_size()
-        return struct.pack("B", opmap["DUP_TOP"])
+        yield struct.pack("B", opmap["DUP_TOP"])
 
-    @invoke
+    @invoke(stacksize=0)
     def invoke_rot(self, n):
         if n == 2:
-            return struct.pack("B", opmap["ROT_TWO"])
+            yield struct.pack("B", opmap["ROT_TWO"])
         elif n == 3:
-            return struct.pack("B", opmap["ROT_THREE"])
+            yield struct.pack("B", opmap["ROT_THREE"])
         elif n == 4:
-            return struct.pack("B", opmap["ROT_FOUR"])
+            yield struct.pack("B", opmap["ROT_FOUR"])
         else:
             raise ValueError("can only rotate 2, 3 or 4 values")
 
-    @invoke
+    @invoke(stacksize=-1, cmp_oper=True)
     def invoke_compare_op(self, op):
-        self._dec_stack_size()
-        return (
-            struct.pack("B", opmap["COMPARE_OP"]),
-            struct.pack("H", cmp_op.index(op)))
+        yield struct.pack("B", opmap["COMPARE_OP"])
+        yield struct.pack("H", op)
 
     # ~ other helpers
     def _gen_code(self, *args):
@@ -392,19 +377,16 @@ class CompiledStub(object):
         return type(__useless.__code__)(*args)
 
     def _invoke_load_const_by_idx(self, idx):
-        return (
-            struct.pack("B", opmap["LOAD_CONST"]),
-            struct.pack("H", idx))
+        yield struct.pack("B", opmap["LOAD_CONST"])
+        yield struct.pack("H", idx)
 
     def _invoke_load_global_by_idx(self, idx):
-        return (
-            struct.pack("B", opmap["LOAD_GLOBAL"]),
-            struct.pack("H", idx))
+        yield struct.pack("B", opmap["LOAD_GLOBAL"])
+        yield struct.pack("H", idx)
 
     def _invoke_store_fast_by_idx(self, idx):
-        return (
-            struct.pack("B", opmap["STORE_FAST"]),
-            struct.pack("H", idx))
+        yield struct.pack("B", opmap["STORE_FAST"])
+        yield struct.pack("H", idx)
 
     def _get_constant_index_or_store(self, const):
         try:
@@ -447,10 +429,9 @@ class CompiledStub(object):
 
         pos[-1].append(replace_pos)
 
+        return struct.pack("H", 0)
+
     def _inc_stack_size(self, sz=1):
         self._cur_stack_size += sz
         if self._cur_stack_size > self._max_stack_size:
             self._max_stack_size = self._cur_stack_size
-
-    def _dec_stack_size(self, sz=1):
-        self._cur_stack_size -= sz
