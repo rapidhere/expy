@@ -62,9 +62,7 @@ def run():
         exit(1)
 
     if args.print_dis:
-        print "byte code disassamble Info: "
-        dis.dis(stub.code)
-        print
+        stub.disassemble()
     try:
         variables = get_variables(args)
     except ValueError as e:

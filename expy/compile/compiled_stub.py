@@ -206,14 +206,24 @@ class CompiledStub(object):
         """
         return len(self._local_vars)
 
-    def dis_code_object(self):
+    def disassemble(self):
         """
         dump the code packed code object
         """
         if self._code is None:
             raise RuntimeError("Please pack the code object first")
 
+        print "byte code disassamble Info: "
+        print " # filename: " + self.code.co_filename
+        print " # module: " + self.code.co_name
+        print " # stacksize: " + str(self.code.co_stacksize)
+        print " # consts: " + ", ".join([str(x) for x in self.code.co_consts])
+        print " # number of vars: " + str(self.code.co_nlocals)
+        print " # variables: " + ", ".join([str(x) for x in self.code.co_varnames])
+        print " # globals: " + ", ".join([str(x) for x in self.code.co_names])
+        print "code: "
         dis.dis(self._code)
+        print
 
     @property
     def code(self):
