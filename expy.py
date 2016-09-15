@@ -4,17 +4,21 @@ A fast python expression executor
 Author: rapidhere@gmail.com
 """
 import argparse
+import textwrap
 import dis
 
 from expy import Compiler
 from expy.exception import ExpyCompilingError
+from expy.compile import function
 
 
 def run():
     parser = argparse.ArgumentParser(
         prog="expy",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
         description="a fast python expression executor",
-        epilog="author & maintainer: rapidhere@gmail.com")
+        epilog=textwrap.dedent(
+            gen_function_help() + "\nauthor & maintainer: rapidhere@gmail.com"))
 
     parser.add_argument(
         "expression", type=str,
@@ -77,6 +81,19 @@ def run():
 
     if not args.disable_print:
         print "  > " + str(result)
+
+
+def gen_function_help():
+    ret = "functions:\n"
+
+    for func in function.func_map.values():
+        name = func.__name__
+        args = "(" + ", ".join([chr(ord('a') + i) for i in range(func.expy_arglen)]) + ")"
+        desc = func.expy_description
+        ret += "  %s %s\n" % (name, args)
+        ret += "    " + desc + "\n\n"
+
+    return ret
 
 
 def get_variables(args):

@@ -23,7 +23,7 @@ def check_and_invoke_function(func_name, args, stub):
 
         if f.expy_arglen != len(args):
             raise FunctionArgumentsLengthError(
-                func_name, f[const.Function.FUNCMAP_KEY_ARGLEN], len(args))
+                func_name, f.expy_arglen, len(args))
 
         with stub.stack_size(f.expy_stacksize):
             f(stub)
@@ -32,13 +32,14 @@ def check_and_invoke_function(func_name, args, stub):
 
 
 # dec, register a function as expy function
-def expy_func(arg_len, stack_size=-1):
+def expy_func(arg_len, description, stack_size=-1):
     """
     when stacksize set to -1, means stacksize is auto discovered, otherwise is specified
     """
     def _dec(f):
         func_map[f.__name__] = f
 
+        f.expy_description = description
         f.expy_arglen = arg_len
         f.expy_stacksize = stack_size
         return f
@@ -48,22 +49,24 @@ def expy_func(arg_len, stack_size=-1):
 
 #~ functions goes here
 
-@expy_func(2)
+@expy_func(2, "calculate a + b")
 def add(stub):
     stub.invoke_binary_add()
 
 
-@expy_func(2)
+@expy_func(2, "calculate a - b")
 def sub(stub):
     stub.invoke_binary_subtract()
 
 
-@expy_func(1)
+@expy_func(1, "just return a, do nothing")
 def nop(stub):
     stub.invoke_nop()
 
 
-@expy_func(arg_len=2, stack_size=64)
+@expy_func(
+    arg_len=2, stack_size=64,
+    description="calculate a ^ b, note 0 ^ 0 = 1. must be integers, and b must be positive")
 def power(stub):
     # NOTE: mark 0 ** 0 = 1, same as python's default behaviour
     # TODO: only available for integer indexes
@@ -135,7 +138,9 @@ def power(stub):
     stub.invoke_pop_top()
 
 
-@expy_func(arg_len=3, stack_size=64)
+@expy_func(
+    arg_len=3, stack_size=64,
+    description="calculate a ^ b % c, all must be integers, and b, c must be positive")
 def powermod(stub):
     # NOTE: see @func expy_func
     # args a, n, m
